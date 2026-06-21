@@ -37,38 +37,9 @@ response = dynamodb.describe_table(TableName=TABLE_NAME)
 print(f"Item count: {response['Table']['ItemCount']}")
 
 
-def createNote(event, _context):
-    body = json.loads(event['body'])
 
-    note = {
-        'noteId': str(uuid.uuid4()),
-        'title': body['title'],
-        'content': body['content']
-    }
 
-    table.put_item(Item=note)
 
-    return {
-        'statusCode': 201,
-        'body': json.dumps(note)
-    }
-
-def readNote(event, _context):
-    body = json.loads(event['body'])
-    note_id = body['noteId']
-
-    response = table.get_item(
-        Key={'noteId': note_id}
-    )
-
-    note = response.get('Item')
-    if not note:
-        return {'statusCode': 404, 'body': json.dumps({'error': 'Note not found'})}
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps(note)
-    }
 
 def updateNote(event, _context):
     body = json.loads(event["body"])
