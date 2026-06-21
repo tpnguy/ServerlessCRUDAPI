@@ -22,6 +22,11 @@ def updateNote(event, _context):
         expr_attr_values[':newContent'] = body['content']
         update_expr_parts.append('#content = :newContent')
 
+    if 'attachmentUrl' in body:
+        expr_attr_names['#attachmentUrl'] = 'attachmentUrl'
+        expr_attr_values[':newAttachmentUrl'] = body['attachmentUrl']
+        update_expr_parts.append('#attachmentUrl = :newAttachmentUrl')
+
     if not update_expr_parts:
         return {
             'statusCode': 400,
