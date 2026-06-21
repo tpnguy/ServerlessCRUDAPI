@@ -54,7 +54,8 @@ def createNote(event, _context):
     }
 
 def readNote(event, _context):
-    note_id = event['pathParameters']['noteId']
+    body = json.loads(event['body'])
+    note_id = body['noteId']
 
     response = table.get_item(
         Key={'noteId': note_id}
@@ -88,7 +89,12 @@ def updateNote(event, _context):
         update_expr_parts.append("#content = :newContent")
     
     if not update_expr_parts:
-        return {"status": "no fields to update"}
+        return {
+            "statusCode": 400,
+            "body": json.dumps({
+                "error": "no fields to update"
+            })
+        }
 
     update_expression = "SET " + ", ".join(update_expr_parts)
 
@@ -106,6 +112,27 @@ def updateNote(event, _context):
         'body': json.dumps({'message': 'Note updated'})
     }
     
+def deleteNote(event, _context):
+    body = json.loads(event['body'])
+    note_id = body['noteId']
+    
+    response = table.get_item(
+        Key={'noteId': note_id}
+    )
+
+    note = response.get('Item')
+    if not note:
+        return {'statusCode': 404, 'body': json.dumps({'error': 'Note not found'})}
+
+    table.delete_item(
+        Key={
+            "noteId": note_id
+        }
+    )
+    return {"statusCode": 204, "body": json.dumps({
+        "message": "Note deleted"
+    })}
+
 # Expose all four lambda expressions via API Gateway (REST endpoints)
 
 # Secure with IAM execution roles (Lambda -> DynamoDB only)
@@ -117,9 +144,7 @@ def updateNote(event, _context):
 if __name__ == '__main__':
     fake_event = {
         'body': json.dumps({
-            'noteId': 'a8fe4863-5182-4784-b11d-b4c925ba0b6e',
-            'title': 'Updated Title',
-            'content': 'Updated content here'
+            'noteId': '92815e8d-6818-4ff2-ab12-511c7d5bba24'
         })
     }
-    print(updateNote(fake_event, None))
+    print(deleteNote(fake_event, None))
